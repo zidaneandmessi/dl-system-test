@@ -12,9 +12,9 @@ class GradientDescentOptimizer(object):
         update = [autodiff.assign_op(self.eval_node_list[i], self.eval_node_list[i] - self.learning_rate * gradients[i]) for i in range(len(self.eval_node_list))]
         return autodiff.init_op(update)
     def minimize(self, var):
-        for node in autodiff.find_topo_sort([var]):
-            if isinstance(node, autodiff.VariableOp) and node not in self.eval_node_list:
-                self.eval_node_list.append(node)
+        for node in session._all_variable_inits:
+            if node.target not in self.eval_node_list:
+                self.eval_node_list.append(node.target)
         gradients = self.compute_gradients(var)
         return self.apply_gradients(gradients)
 
@@ -30,9 +30,9 @@ class AdamOptimizer(object):
 
     def minimize(self, obj):
         eval_node_list = []
-        for node in autodiff.find_topo_sort([obj]):
-            if isinstance(node, autodiff.VariableOp) and node not in eval_node_list:
-                eval_node_list.append(node)
+        for node in session._all_variable_inits:
+            if node.target not in eval_node_list:
+                eval_node_list.append(node.target)
         gradients = autodiff.gradients(obj, eval_node_list)
         updates = []
         self.t = session.Variable([0])
