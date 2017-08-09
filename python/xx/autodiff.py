@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import ctypes
 import numpy as np
 import scipy.signal
-#from . import c
+from . import c
 
 float32 = ctypes.c_float
 
@@ -945,8 +945,8 @@ class Conv2dOp(Op):
         # padding: SAME VALID
         # output: [batch, (in_height - filter_height - padding * 2) / stride + 1, (in_width - filter_width - padding * 2) / stride + 1, out_channels]
         
-        # input = input_vals[0]
-        # filter = input_vals[1]
+        input = input_vals[0].astype(np.float64)
+        filter = input_vals[1].astype(np.float64)
         # strides = node.const_attr[0]
         # batch = input.shape[0]
         # in_height = input.shape[1]
@@ -984,23 +984,24 @@ class Conv2dGrad1Op(Op):
         return new_node
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
-        input = input_vals[2]
-        filter = np.rot90(input_vals[1], k = 2, axes = (0, 1))
-        strides = node.const_attr[0]
-        batch = input.shape[0]
-        in_height = input_vals[0].shape[1]
-        in_width = input_vals[0].shape[2]
-        in_channels = input_vals[0].shape[3]
-        filter_height = filter.shape[0]
-        filter_width = filter.shape[1]
-        out_channels = filter.shape[3]
-        output_val[:] = np.zeros(output_val.shape)
-        for i in range(batch):
-            input_matrix = input[i, :, :, :]
-            for l in range(out_channels):
-                for k in range(in_channels):
-                    filter_matrix = filter[:, :, k, l]
-                    output_val[i, :, :, k] += scipy.signal.correlate2d(input_matrix[:, :, l], filter_matrix, mode = 'same')
+        input = input_vals[2].astype(np.float64)
+        filter = np.rot90(input_vals[1], k = 2, axes = (0, 1)).astype(np.float64)
+        # strides = node.const_attr[0]
+        # batch = input.shape[0]
+        # in_height = input_vals[0].shape[1]
+        # in_width = input_vals[0].shape[2]
+        # in_channels = input_vals[0].shape[3]
+        # filter_height = filter.shape[0]
+        # filter_width = filter.shape[1]
+        # out_channels = filter.shape[3]
+        # output_val[:] = np.zeros(output_val.shape)
+        # for i in range(batch):
+        #     input_matrix = input[i, :, :, :]
+        #     for l in range(out_channels):
+        #         for k in range(in_channels):
+        #             filter_matrix = filter[:, :, k, l]
+        #             output_val[i, :, :, k] += scipy.signal.correlate2d(input_matrix[:, :, l], filter_matrix, mode = 'same')
+        c.conv2dgrad1(input, filter, output_val)
       
     def infer_shape(self, node, input_shapes):
         return input_shapes[0]
@@ -1015,25 +1016,26 @@ class Conv2dGrad2Op(Op):
         return new_node
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
-        input = input_vals[0]
-        filter = np.rot90(input_vals[2], k = 2, axes = (1, 2))
-        strides = node.const_attr[0]
-        batch = input.shape[0]
-        in_height = input.shape[1]
-        in_width = input.shape[2]
-        in_channels = input.shape[3]
-        filter_height = input_vals[1].shape[0]
-        filter_width = input_vals[1].shape[1]
-        out_channels = input_vals[1].shape[3]
-        output_val[:] = np.zeros(output_val.shape)
-        for i in range(batch):
-            for k in range(in_channels):
-                input_matrix = np.zeros(((in_height - 1) * strides[1] + filter_height, (in_width - 1) * strides[2] + filter_width))
-                padding = ((in_height - 1) * strides[1] + filter_height - in_height) / 2
-                input_matrix[padding:-padding, padding:-padding] = input[i, :, :, k]
-                for l in range(out_channels):
-                    filter_matrix = filter[i, :, :, l]
-                    output_val[:, :, k, l] += scipy.signal.correlate2d(input_matrix, filter_matrix, mode = 'valid')
+        input = input_vals[0].astype(np.float64)
+        filter = np.rot90(input_vals[2], k = 2, axes = (1, 2)).astype(np.float64)
+        # strides = node.const_attr[0]
+        # batch = input.shape[0]
+        # in_height = input.shape[1]
+        # in_width = input.shape[2]
+        # in_channels = input.shape[3]
+        # filter_height = input_vals[1].shape[0]
+        # filter_width = input_vals[1].shape[1]
+        # out_channels = input_vals[1].shape[3]
+        # output_val[:] = np.zeros(output_val.shape)
+        # for i in range(batch):
+        #     for k in range(in_channels):
+        #         input_matrix = np.zeros((in_height - 1 + filter_height, in_width - 1 + filter_width))
+        #         padding = (filter_height - 1) / 2
+        #         input_matrix[padding:-padding, padding:-padding] = input[i, :, :, k]
+        #         for l in range(out_channels):
+        #             filter_matrix = filter[i, :, :, l]
+        #             output_val[:, :, k, l] += scipy.signal.correlate2d(input_matrix, filter_matrix, mode = 'valid')
+        c.conv2dgrad2(input, filter, output_val)
       
     def infer_shape(self, node, input_shapes):
         return input_shapes[1]
