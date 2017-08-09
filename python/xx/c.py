@@ -104,7 +104,7 @@ def maxpoolgrad(input, gradient, ksize, stride, output):
     padding = ((in_height / stride - 1) * stride + ksize[1] - in_height) / 2
     in_height = in_height + padding * stride
     in_width = in_width + padding * stride
-    input_matrix = np.zeros((batch, in_height, in_width, in_channels))
+    input_matrix = np.empty([batch, in_height, in_width, in_channels])
     input_pointer = input_matrix.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
     ans = np.zeros((batch, in_height, in_width, in_channels))
     ans_pointer = ans.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
