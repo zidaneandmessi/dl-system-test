@@ -1,5 +1,5 @@
 """ import your model here """
-import your_model as tf
+import xx as tf
 """ your model should support the following code """
 
 def weight_variable(shape):

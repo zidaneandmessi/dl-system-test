@@ -973,7 +973,7 @@ class Conv2dGrad2Op(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         input = input_vals[0].astype(np.float64)
-        filter = np.rot90(input_vals[2], k = 2, axes = (1, 2)).astype(np.float64)
+        filter = input_vals[2].astype(np.float64)
         # strides = node.const_attr[0]
         # batch = input.shape[0]
         # in_height = input.shape[1]
@@ -1124,25 +1124,25 @@ class DropOutOp(Op):
         noise_shape = input_vals[0].shape
         random_tensor = np.random.uniform(size=noise_shape)
         node.const_attr = random_tensor < input_vals[1]
-        output_val[:] = input_vals[0] * node.const_attr
+        output_val[:] = input_vals[0] * node.const_attr / node.inputs[1]
 
 
     def gradient(self, node, output_grad):
-        return [dropout_grad_op(node, output_grad), 0]
+        return [dropout_grad_op(node, output_grad, node.inputs[1]), 0]
 
     def infer_shape(self, node, input_shapes):
         return input_shapes[0]
 
 
 class DropoutGradientOp(Op):
-    def __call__(self, node, gradient):
+    def __call__(self, node, gradient, keep_prob):
         new_node = Op.__call__(self)
-        new_node.inputs = [node, gradient]
+        new_node.inputs = [node, gradient, keep_prob]
         new_node.name = "DropoutGradient"
         return new_node
         
     def compute(self, node, input_vals, output_val, use_numpy = True):
-        output_val[:] = input_vals[1] * node.inputs[0].const_attr
+        output_val[:] = input_vals[1] * node.inputs[0].const_attr / node.inputs[2]
         
     def infer_shape(self, node, input_shapes):
         return input_shapes[0]

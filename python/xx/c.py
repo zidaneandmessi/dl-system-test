@@ -4,6 +4,7 @@ import os
 
 cdll = ctypes.CDLL(os.path.join(os.path.dirname(__file__), "cpp.so"))
 
+#profile
 def conv2d(input, filter, output):
     output[:] = np.zeros(output.shape)
     origin_input_pointer = input.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
@@ -25,6 +26,7 @@ def conv2d(input, filter, output):
     input_pointer = input_matrix.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
     cdll.correlate2d(input_pointer, origin_input_pointer, filter_pointer, output_pointer, batch, in_height, in_width, filter_height, filter_width, out_height, out_width, in_channels, out_channels, padding)
 
+#profile
 def conv2dgrad1(input, filter, output):
     output[:] = np.zeros(output.shape)
     origin_input_pointer = input.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
@@ -67,6 +69,7 @@ def conv2dgrad2(input, filter, output):
     input_pointer = input_matrix.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
     cdll.correlate2dgrad2(input_pointer, origin_input_pointer, filter_pointer, output_pointer, batch, in_height, in_width, filter_height, filter_width, out_height, out_width, in_channels, out_channels, padding)
 
+#profile
 def maxpool(input, ksize, stride, output):
     output[:] = np.zeros(output.shape)
     origin_input_pointer = input.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
@@ -86,6 +89,7 @@ def maxpool(input, ksize, stride, output):
     input_pointer = input_matrix.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
     cdll.maxpool(input_pointer, origin_input_pointer, output_pointer, batch, in_height, in_width, pool_height, pool_width, out_height, out_width, in_channels, stride, padding)
     
+#profile
 def maxpoolgrad(input, gradient, ksize, stride, output):
     output[:] = np.zeros(output.shape)
     origin_input_pointer = input.ctypes.data_as(ctypes.POINTER(ctypes.c_double))
