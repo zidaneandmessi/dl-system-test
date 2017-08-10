@@ -119,20 +119,11 @@ class Node(object):
                 feed_dict[n] = np.array(val)
         exe = Executor([self])
         ans = exe.run(feed_dict)
-        for node, val in ans.items():
-            if val.shape == (1,):
-                ans[node] = val[0]
+        if ans[self].shape == (1,):
+            return ans[self][0]
         return ans[self]
 
-    def run(self, feed_dict):
-        feed_dict = feed_dict if feed_dict else {}
-        for n, val in feed_dict.items():
-            if not isinstance(val, np.ndarray):
-                if not isinstance(val, list):
-                    val = [val]
-                feed_dict[n] = np.array(val)
-        exe = Executor([self])
-        exe.run(feed_dict)
+    run = eval
 
 class Op(object):
     """Op represents operations performed on nodes."""
@@ -1350,7 +1341,6 @@ class Executor(object):
 
         # Traverse graph in topo order and compute values for all nodes.
         for node in self.topo_order:
-            #print node
             if node in node_to_val_map:
                 # Skip placeholder nodes. Values already provided by feed_dict.
                 continue

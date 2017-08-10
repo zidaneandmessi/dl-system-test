@@ -1,5 +1,5 @@
 """ import your model here """
-import your_model as tf
+import xx as tf
 """ your model should support the following code """
 
 '''
@@ -66,7 +66,7 @@ with tf.Session() as sess:
     sess.run(init)
 
     # Training cycle
-    for epoch in range(training_epochs):
+    for epoch in range(0):
         avg_cost = 0.
         total_batch = int(mnist.train.num_examples/batch_size)
         # Loop over all batches

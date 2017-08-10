@@ -17,7 +17,7 @@ testcase for [PPCA 2017](https://acm.sjtu.edu.cn/wiki/PPCA_2017#.E6.9C.BA.E5.99.
 
 # How to run test
 ```bash
-g++ ./python/xx/cpp.cpp -fPIC -shared -o ./python/xx/cpp.so
+g++ -O2 ./python/xx/cpp.cpp -fPIC -shared -o ./python/xx/cpp.so
 export PYTHONPATH="${PYTHONPATH}:/.../dl-systest/python"
 python run_test.py name_of_your_model
 ```
