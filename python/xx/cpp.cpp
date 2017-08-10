@@ -1,7 +1,8 @@
-#include <iostream>
-#include <algorithm>
-
-using namespace std;
+double max(double a, double b)
+{
+    if (a > b) return a;
+    return b;
+}
 
 extern "C"
 void correlate2d(double *input, const double *origin, const double *filter, double *output, int batch, int in_height, int in_width, int filter_height, int filter_width, int out_height, int out_width, int in_channels, int out_channels, int padding)
