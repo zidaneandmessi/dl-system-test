@@ -66,7 +66,6 @@ with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     for i in range(200):
         batch = mnist.train.next_batch(100)
-        print i
         if i % 50 == 0:
             train_accuracy = accuracy.eval(feed_dict = { x: batch[0],
                                            y_: batch[1]})
