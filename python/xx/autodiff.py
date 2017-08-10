@@ -1121,9 +1121,6 @@ class DropOutOp(Op):
         return new_node
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
-        if input_vals[1] == 1:
-            output_val[:] = input_vals[0]
-            return
         noise_shape = input_vals[0].shape
         random_tensor = np.random.uniform(size=noise_shape)
         node.const_attr = random_tensor < input_vals[1]
@@ -1145,7 +1142,7 @@ class DropoutGradientOp(Op):
         return new_node
         
     def compute(self, node, input_vals, output_val, use_numpy = True):
-        output_val[:] = input_vals[0] * node.inputs[0].const_attr
+        output_val[:] = input_vals[1] * node.inputs[0].const_attr
         
     def infer_shape(self, node, input_shapes):
         return input_shapes[0]
