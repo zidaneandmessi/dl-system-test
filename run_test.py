@@ -12,8 +12,8 @@ tests = [
     # ["optimizer",   "6_mnist_optimizer.py"],
     # ["multilayer perceptron", "7_ml_perceptron.py"],
     # ["adam optimizer",        "8_adam.py"],
-    # ["CNN 0",       "11_cnn_0.py"],
-    # ["CNN 1",       "9_cnn_1.py"],
+    ["CNN 0",       "11_cnn_0.py"],
+    ["CNN 1",       "9_cnn_1.py"],
     ["CNN 2",       "10_cnn_2.py"]
 ]
 
