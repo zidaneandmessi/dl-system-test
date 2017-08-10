@@ -1032,20 +1032,20 @@ class MaxPoolOp(Op):
         input = input_vals[0].astype(np.float64)
         ksize = node.const_attr[0]
         strides = node.const_attr[1]
-        batch = input.shape[0]
-        in_height = input.shape[1]
-        in_width = input.shape[2]
-        in_channels = input.shape[3]
-        for i in range(batch):
-            for k in range(in_channels):
-                padding = ((in_height / strides[1] - 1) * strides[1] + ksize[1] - in_height) / 2
-                input_matrix = np.zeros((in_height + padding * 2, in_width + padding * 2))
-                if padding == 0:
-                    input_matrix[:, :] = input[i, :, :, k]
-                else:
-                    input_matrix[padding:-padding, padding:-padding] = input[i, :, :, k]
-                output_val[i, :, :, k] = pooling(input_matrix, in_height, in_width, ksize, strides[1])
-        # c.maxpool(input, ksize, strides[1], output_val)
+        # batch = input.shape[0]
+        # in_height = input.shape[1]
+        # in_width = input.shape[2]
+        # in_channels = input.shape[3]
+        # for i in range(batch):
+        #     for k in range(in_channels):
+        #         padding = ((in_height / strides[1] - 1) * strides[1] + ksize[1] - in_height) / 2
+        #         input_matrix = np.zeros((in_height + padding * 2, in_width + padding * 2))
+        #         if padding == 0:
+        #             input_matrix[:, :] = input[i, :, :, k]
+        #         else:
+        #             input_matrix[padding:-padding, padding:-padding] = input[i, :, :, k]
+        #         output_val[i, :, :, k] = pooling(input_matrix, in_height, in_width, ksize, strides[1])
+        c.maxpool(input, ksize, strides[1], output_val)
 
     def gradient(self, node, output_grad):
         return [maxpool_grad_op(node.inputs[0], output_grad, node.const_attr)]
