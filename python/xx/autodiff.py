@@ -288,21 +288,7 @@ class MulOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 2
-        if use_numpy:
-            output_val[:] = input_vals[0] * input_vals[1]
-        else:
-            if input_vals[0].shape == input_vals[1].shape:
-                gpu_op.matrix_elementwise_multiply(
-                    input_vals[0], input_vals[1], output_val)
-            else:
-                if input_vals[1].shape == (1,):
-                    const_val = input_vals[1].asnumpy()[0]
-                    gpu_op.matrix_elementwise_multiply_by_const(
-                        input_vals[0], const_val, output_val)
-                elif input_vals[0].shape == (1,):
-                    const_val = input_vals[0].asnumpy()[0]
-                    gpu_op.matrix_elementwise_multiply_by_const(
-                        input_vals[1], const_val, output_val)
+        output_val[:] = input_vals[0] * input_vals[1]
 
     def gradient(self, node, output_grad):
         return [reducesumto_op(node.inputs[1] * output_grad, node.inputs[0]), reducesumto_op(node.inputs[0] * output_grad, node.inputs[1])]
@@ -356,27 +342,21 @@ class MatMulOp(Op):
         return new_node
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
-        if use_numpy:
-            if ((node.matmul_attr_trans_A is False) and
-                    (node.matmul_attr_trans_B is False)):
-                output_val[:] = np.matmul(input_vals[0], input_vals[1])
-            elif ((node.matmul_attr_trans_A is True) and
-                    (node.matmul_attr_trans_B is False)):
-                output_val[:] = np.matmul(
-                    np.transpose(input_vals[0]), input_vals[1])
-            elif ((node.matmul_attr_trans_A is False) and
-                    (node.matmul_attr_trans_B is True)):
-                output_val[:] = np.matmul(
-                    input_vals[0], np.transpose(input_vals[1]))
-            elif ((node.matmul_attr_trans_A is True) and
-                    (node.matmul_attr_trans_B is True)):
-                output_val[:] = np.matmul(
-                    np.transpose(input_vals[0]), np.transpose(input_vals[1]))
-        else:
-            gpu_op.matrix_multiply(
-                input_vals[0], node.matmul_attr_trans_A,
-                input_vals[1], node.matmul_attr_trans_B,
-                output_val)
+        if ((node.matmul_attr_trans_A is False) and
+                (node.matmul_attr_trans_B is False)):
+            output_val[:] = np.matmul(input_vals[0], input_vals[1])
+        elif ((node.matmul_attr_trans_A is True) and
+                (node.matmul_attr_trans_B is False)):
+            output_val[:] = np.matmul(
+                np.transpose(input_vals[0]), input_vals[1])
+        elif ((node.matmul_attr_trans_A is False) and
+                (node.matmul_attr_trans_B is True)):
+            output_val[:] = np.matmul(
+                input_vals[0], np.transpose(input_vals[1]))
+        elif ((node.matmul_attr_trans_A is True) and
+                (node.matmul_attr_trans_B is True)):
+            output_val[:] = np.matmul(
+                np.transpose(input_vals[0]), np.transpose(input_vals[1]))
 
     def gradient(self, node, output_grad):
         """Given gradient of multiply node, return gradient contributions to each input.
@@ -498,10 +478,7 @@ class ZerosLikeOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
-        if use_numpy:
-            output_val[:] = np.zeros(input_vals[0].shape)
-        else:
-            gpu_op.array_set(output_val, 0)
+        output_val[:] = np.zeros(input_vals[0].shape)
 
     def gradient(self, node, output_grad):
         return [zeroslike_op(node.inputs[0])]
@@ -522,10 +499,7 @@ class OnesLikeOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
-        if use_numpy:
-            output_val[:] = np.ones(input_vals[0].shape)
-        else:
-            gpu_op.array_set(output_val, 1)
+        output_val[:] = np.ones(input_vals[0].shape)
 
     def gradient(self, node, output_grad):
         return [zeroslike_op(node.inputs[0])]
@@ -649,17 +623,14 @@ class BroadcastToOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert(len(input_vals)==2)
-        if use_numpy:
-            if len(input_vals[0].shape) > len(input_vals[1].shape):
-                input_vals[0] = input_vals[0].reshape(input_vals[1].shape)
-            while len(input_vals[0].shape) < len(input_vals[1].shape):
-                if (input_vals[0].shape[0] == input_vals[1].shape[0]):
-                  input_vals[0] = input_vals[0].reshape(input_vals[0].shape + (1,))
-                else: 
-                  input_vals[0] = input_vals[0].reshape((1,) + input_vals[0].shape)
-            output_val[:] = np.broadcast_to(input_vals[0], input_vals[1].shape)
-        else:
-            gpu_op.broadcast_to(input_vals[0], output_val)
+        if len(input_vals[0].shape) > len(input_vals[1].shape):
+            input_vals[0] = input_vals[0].reshape(input_vals[1].shape)
+        while len(input_vals[0].shape) < len(input_vals[1].shape):
+            if (input_vals[0].shape[0] == input_vals[1].shape[0]):
+              input_vals[0] = input_vals[0].reshape(input_vals[0].shape + (1,))
+            else: 
+              input_vals[0] = input_vals[0].reshape((1,) + input_vals[0].shape)
+        output_val[:] = np.broadcast_to(input_vals[0], input_vals[1].shape)
 
     def gradient(self, node, output_grad):
         grad_A = reducesumaxiszero_op(output_grad)
@@ -688,10 +659,7 @@ class ReluOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 1
-        if use_numpy:
-            output_val[:] = np.maximum(input_vals[0], 0)
-        else:
-            gpu_op.relu(input_vals[0], output_val)
+        output_val[:] = np.maximum(input_vals[0], 0)
 
     def gradient(self, node, output_grad):
         return [relu_gradient_op(node.inputs[0], output_grad)]
@@ -711,11 +679,8 @@ class ReluGradientOp(Op):
 
     def compute(self, node, input_vals, output_val, use_numpy=True):
         assert len(input_vals) == 2
-        if use_numpy:
-            # heaviside function, 0.5 at x=0
-            output_val[:] = (np.sign(input_vals[0]) + 1) * 0.5 * input_vals[1]
-        else:
-            gpu_op.relu_gradient(input_vals[0], input_vals[1], output_val)
+        # heaviside function, 0.5 at x=0
+        output_val[:] = (np.sign(input_vals[0]) + 1) * 0.5 * input_vals[1]
 
     def gradient(self, node, output_grad):
         raise NotImplementedError
@@ -1312,18 +1277,9 @@ class Executor(object):
         use_numpy = self.ctx is None
         node_to_val_map = {}
         for node, value in feed_dict.items():
-            if use_numpy:
-                # all values passed in feed_dict must be np.ndarray
-                assert isinstance(value, np.ndarray)
-                node_to_val_map[node] = value
-            else:
-                # convert values to ndarray.NDArray if necessary
-                if isinstance(value, np.ndarray):
-                    node_to_val_map[node] = ndarray.array(value, ctx=self.ctx)
-                elif isinstance(value, ndarray.NDArray):
-                    node_to_val_map[node] = value
-                else:
-                    assert False, "feed_dict value type not supported"
+            # all values passed in feed_dict must be np.ndarray
+            assert isinstance(value, np.ndarray)
+            node_to_val_map[node] = value
 
         # collect shapes for all placeholders
         feed_shapes = {}
@@ -1336,8 +1292,6 @@ class Executor(object):
             self.infer_shape(feed_shapes)
             self.feed_shapes = feed_shapes
             # plan memory if using GPU
-            if (not use_numpy):
-                self.memory_plan(feed_shapes)
 
         # Traverse graph in topo order and compute values for all nodes.
         for node in self.topo_order:
@@ -1345,17 +1299,11 @@ class Executor(object):
                 # Skip placeholder nodes. Values already provided by feed_dict.
                 continue
             input_vals = [node_to_val_map[n] for n in node.inputs]
-            if use_numpy:
-                node_val = np.empty(shape=self.node_to_shape_map[node])
-            else:
-                node_val = self.node_to_arr_map[node]
+            node_val = np.empty(shape=self.node_to_shape_map[node])
             # node_val is modified in-place whether np.ndarray or NDArray
             node.op.compute(node, input_vals, node_val, use_numpy)
             node_to_val_map[node] = node_val
 
-        # Collect node values.
-        if not use_numpy and convert_to_numpy_ret_vals:
-            return [node_to_val_map[n].asnumpy() for n in self.eval_node_list]
         return node_to_val_map
 
 
